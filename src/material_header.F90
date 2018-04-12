@@ -274,6 +274,8 @@ contains
     real(8) :: sab_frac      ! fraction of atoms affected by S(a,b)
     logical :: check_sab     ! should we check for S(a,b) table?
 
+    real(8) :: factor        ! uncertainty factor
+    
     ! Set all material macroscopic cross sections to zero
     material_xs % total          = ZERO
     material_xs % absorption     = ZERO
@@ -357,6 +359,13 @@ contains
            atom_density * micro_xs(i_nuclide) % nu_fission
     end do
 
+    factor = 0.99
+    ! make cross section 5% smaller
+    material_xs % total = material_xs % total * factor
+    material_xs % absorption = material_xs % absorption * factor
+    material_xs % fission = material_xs % fission * factor
+    material_xs % nu_fission = material_xs % nu_fission * factor
+    
   end subroutine material_calculate_xs
 
 !===============================================================================
