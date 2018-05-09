@@ -102,20 +102,25 @@ endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
+  message(${CMAKE_Fortran_COMPILER})
+  if(CMAKE_Fortran_COMPILER MATCHES "flang")
+    list(APPEND f90flags -cpp -O2)
+    add_definitions(-DNO_F2008)
+  else() # regular GCC route
   # Make sure version is sufficient
-  execute_process(COMMAND ${CMAKE_Fortran_COMPILER} -dumpversion
-    OUTPUT_VARIABLE GCC_VERSION)
-  if(GCC_VERSION VERSION_LESS 4.8)
-    message(FATAL_ERROR "gfortran version must be 4.8 or higher")
-  endif()
+    execute_process(COMMAND ${CMAKE_Fortran_COMPILER} -dumpversion OUTPUT_VARIABLE GCC_VERSION)
+    if(GCC_VERSION VERSION_LESS 4.8)
+      message(FATAL_ERROR "gfortran version must be 4.8 or higher")
+    endif()
 
-  # GCC compiler options
-  list(APPEND f90flags -cpp -std=f2008ts -fbacktrace -O2 -fstack-arrays)
-  if(debug)
-    list(REMOVE_ITEM f90flags -O2 -fstack-arrays)
-    list(APPEND f90flags -g -Wall -Wno-unused-dummy-argument -pedantic
-      -fbounds-check -ffpe-trap=invalid,overflow,underflow)
-    list(APPEND ldflags -g)
+    # GCC compiler options
+    list(APPEND f90flags -cpp -std=f2008ts -fbacktrace -O2 -fstack-arrays)
+    if(debug)
+      list(REMOVE_ITEM f90flags -O2 -fstack-arrays)
+      list(APPEND f90flags -g -Wall -Wno-unused-dummy-argument -pedantic
+        -fbounds-check -ffpe-trap=invalid,overflow,underflow)
+      list(APPEND ldflags -g)
+    endif()
   endif()
   if(profile)
     list(APPEND f90flags -pg)
