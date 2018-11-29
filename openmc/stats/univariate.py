@@ -308,6 +308,75 @@ class Watt(Univariate):
         element.set("parameters", '{} {}'.format(self.a, self.b))
         return element
 
+class Gaussian(Univariate):
+    r"""Gaussian energy spectrum.
+
+    The Gaussian energy spectrum is characterized by two parameters
+    :math:`\mu` and :math:`\sigma` and has density function :math:
+    `p(E) dE = 1/\sigma\sqrt{\pi} * e^{(E-\mu/\sigma}`
+
+    Parameters
+    ----------
+    mean : float
+        Mean of the Gaussian distribution in units of eV
+    std_dev : float
+        Standard deviation of the Gaussian distribution in units of eV
+
+    Attributes
+    ----------
+    mean : flo1at
+        Mean of the Gaussian distribution in units of eV
+    std_dev : float
+        Standard deviation of the Gaussian distribution in units of eV
+    """
+
+    def __init__(self, a=14.08e6, b=4.74636e5):
+        super().__init__()
+        self.mean = mean
+        self.std_dev = std_dev
+
+    def __len__(self):
+        return 2
+
+    @property
+    def mean(self):
+        return self._mean
+
+    @property
+    def std_dev(self):
+        return self._std_dev
+
+    @mean.setter
+    def mean(self, mean):
+        cv.check_type('Gaussian mean', mean, Real)
+        cv.check_greater_than('Gaussian mean', mean, 0.0)
+        self._mean = mean
+
+    @std_dev.setter
+    def std_dev(self, std_dev):
+        cv.check_type('Gaussian std_dev', std_dev, Real)
+        cv.check_greater_than('Gaussian std_dev', std_dev, 0.0)
+        self._std_dev = std_dev
+
+    def to_xml_element(self, element_name):
+        """Return XML representation of the Watt distribution
+
+        Parameters
+        ----------
+        element_name : str
+            XML element name
+
+        Returns
+        -------
+        element : xml.etree.ElementTree.Element
+            XML element containing Watt distribution data
+
+        """
+        element = ET.Element(element_name)
+        element.set("type", "gaussian")
+        element.set("parameters", '{} {}'.format(self.mean, self.std_dev))
+        return element
+
 
 class Tabular(Univariate):
     """Piecewise continuous probability distribution.
