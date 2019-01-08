@@ -378,14 +378,14 @@ public:
 
 class SurfaceXCone : public CSGSurface
 {
+  double x0_, y0_, z0_, radius_sq_;
+  double up_ = 0; // +1 up , -1 down ; dual sheet
 public:
   explicit SurfaceXCone(pugi::xml_node surf_node);
   double evaluate(Position r) const;
   double distance(Position r, Direction u, bool coincident) const;
   Direction normal(Position r) const;
   void to_hdf5_inner(hid_t group_id) const;
-
-  double x0_, y0_, z0_, radius_sq_;
 };
 
 //==============================================================================
@@ -397,14 +397,14 @@ public:
 
 class SurfaceYCone : public CSGSurface
 {
+  double x0_, y0_, z0_, radius_sq_;
+  double up_ = 0; // +1 up , -1 down ; dual sheet
 public:
   explicit SurfaceYCone(pugi::xml_node surf_node);
   double evaluate(Position r) const;
   double distance(Position r, Direction u, bool coincident) const;
   Direction normal(Position r) const;
   void to_hdf5_inner(hid_t group_id) const;
-
-  double x0_, y0_, z0_, radius_sq_;
 };
 
 //==============================================================================
@@ -416,14 +416,14 @@ public:
 
 class SurfaceZCone : public CSGSurface
 {
+  double x0_, y0_, z0_, radius_sq_;
+  double up_ = 0; // +1 up , -1 down ; dual sheet
 public:
   explicit SurfaceZCone(pugi::xml_node surf_node);
   double evaluate(Position r) const;
   double distance(Position r, Direction u, bool coincident) const;
   Direction normal(Position r) const;
   void to_hdf5_inner(hid_t group_id) const;
-
-  double x0_, y0_, z0_, radius_sq_;
 };
 
 //==============================================================================
