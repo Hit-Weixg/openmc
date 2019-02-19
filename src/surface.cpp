@@ -905,9 +905,9 @@ axis_aligned_cone_evaluate(Position r, double offset1,
   const double r2 = r[i2] - offset2;
   const double r3 = r[i3] - offset3;
   if (up == 1) {
-    return ( r1 < 0 ) ? 1. : r2*r2 + r3*r3 - radius_sq*r1*r1;
+    return ( r1 <= 0 ) ? 1. : r2*r2 + r3*r3 - radius_sq*r1*r1;
   } else if ( up == -1 ) {
-    return ( r1 > 0 ) ? 1. : r2*r2 + r3*r3 - radius_sq*r1*r1;
+    return ( r1 >= 0 ) ? 1. : r2*r2 + r3*r3 - radius_sq*r1*r1;
   } else {
     return r2*r2 + r3*r3 - radius_sq*r1*r1;
   }
