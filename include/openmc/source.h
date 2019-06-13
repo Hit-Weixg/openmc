@@ -58,6 +58,10 @@ private:
 //! Initialize source bank from file/distribution
 extern "C" void initialize_source();
 
+// as yet uncreated function to sample a source from a shared object
+// 
+// extern "C" Particle::Bank sample_source();
+
 //! Sample a site from all external source distributions in proportion to their
 //! source strength
 //! \return Sampled source site
