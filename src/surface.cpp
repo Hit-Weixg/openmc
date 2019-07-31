@@ -1192,7 +1192,7 @@ int quadratic_solve(double a, double b, double c, std::array<double,2> &x) {
 }
 
 const double M_2PI = 2*PI;
-const double eps=1e-18;
+const double eps=FP_COINCIDENT;
 
 //typedef std::complex<double> DComplex;
 
@@ -1218,7 +1218,7 @@ unsigned int solve_cubic(const double a, const double b, const double c, std::ar
   	if( t> 1) t= 1;
   	t=std::acos(t);
   	a_prime = a/3.; 
-	q=-2*std::sqrt(q);
+   	q=-2*std::sqrt(q);
   	x[0]=q*std::cos(t/3)-a_prime;
   	x[1]=q*std::cos((t+M_2PI)/3)-a_prime;
   	x[2]=q*std::cos((t-M_2PI)/3)-a_prime;
@@ -1472,7 +1472,6 @@ SurfaceZTorus::distance(Position r, Direction ang, bool coincident) const
 
   // 4th order coefficient
   a = std::pow(u,4) + 2*std::pow(u,2)*std::pow(v,2) + std::pow(v,4) + 2*std::pow(C,2)*std::pow(u,2)*std::pow(w,2)/std::pow(B,2) + 2*std::pow(C,2)*std::pow(v,2)*std::pow(w,2)/std::pow(B,2) + std::pow(C,4)*std::pow(w,4)/std::pow(B,4);
-  
   // 3rd order coefficient
   b = -4*std::pow(u,3)*x0 + 4*std::pow(u,3)*xr - 4*std::pow(u,2)*v*y0 + 4*std::pow(u,2)*v*yr - 4*u*std::pow(v,2)*x0 + 4*u*std::pow(v,2)*xr - 4*std::pow(v,3)*y0 + 4*std::pow(v,3)*yr - 4*std::pow(C,2)*std::pow(u,2)*w*z0/std::pow(B,2) + 4*std::pow(C,2)*std::pow(u,2)*w*zr/std::pow(B,2) - 4*std::pow(C,2)*u*std::pow(w,2)*x0/std::pow(B,2) + 4*std::pow(C,2)*u*std::pow(w,2)*xr/std::pow(B,2) - 4*std::pow(C,2)*std::pow(v,2)*w*z0/std::pow(B,2) + 4*std::pow(C,2)*std::pow(v,2)*w*zr/std::pow(B,2) - 4*std::pow(C,2)*v*std::pow(w,2)*y0/std::pow(B,2) + 4*std::pow(C,2)*v*std::pow(w,2)*yr/std::pow(B,2) - 4*std::pow(C,4)*std::pow(w,3)*z0/std::pow(B,4) + 4*std::pow(C,4)*std::pow(w,3)*zr/std::pow(B,4);
   // 2nd order coefficient
@@ -1486,9 +1485,31 @@ SurfaceZTorus::distance(Position r, Direction ang, bool coincident) const
   std::array<double,4> roots;
   quartic_solve(b,c,d,e,roots);
  
-  // roots is a sorted list, return the first that is larger than
+ std::cout << std::scientific;
+  std::cout << coincident << " ";
+  std::cout << " roots ";
+  // roots is a sorted list, return the first that is larger than 0
   for ( int i = 0 ; i < 4 ; i++ ) {
-    if ( roots[i] > 0. ) return roots[i];
+    std::cout << roots[i] << " ";
+  }
+  std::cout << roots[0] - roots[1] << " ";
+  std::cout << roots[3] - roots[2];
+  std::cout << std::endl;
+  std::cout << "cooefs: " <<  a << "  " << b << " " << c << " " << d << " " << e << std::endl;
+  if (coincident) r += ang*TINY_BIT;
+
+  // special degerenate case two sets of repated
+  // roots
+  if ( b == 0.0 && d == 0) {
+    if ( roots[1] - roots[0] < 1e-5 ) return INFTY;
+    if ( roots[3] - roots[2] < 1e-5 ) return INFTY;
+  }
+
+  for ( int i = 0 ; i < 4 ; i++ ) {
+    if ( roots[i] > FP_COINCIDENT) {
+      std::cout << evaluate(r) << " " << roots[i] << std::endl;
+      return roots[i];
+    } 
   }
 
   // otherwise no hit
@@ -1498,7 +1519,33 @@ SurfaceZTorus::distance(Position r, Direction ang, bool coincident) const
 Direction
 SurfaceZTorus::normal(Position r) const
 {
-  return {0,0,0};
+  // reduce the expansion of the full form for torus
+  double x = r.x - x0_;
+  double y = r.y - y0_;
+  double z = r.z - z0_;
+
+  double A2 = A_*A_;
+  double B2 = B_*B_;
+  double C2 = C_*C_;
+
+
+  // coefficients for the x, x^2, x^3 and x^4 term
+  // but since we differeniate - we get x4 -> 4x3 
+  double dx_4 = 1.0;
+  double dx_2 = -2.*(A2 - C2 + y*y + C2*z*z/B2);
+  double dx = 4.*dx_4*x*x*x + 2.*dx_2*x;
+  // similarly to y
+  double dy_4 = 1.0;
+  double dy_2 = -2.*(A2 - C2 + x*x + C2*z*z/B2);
+  double dy = 4.*dy_4*y*y*y + 2.*dy_2*y;
+  // and z
+  double dz_4 = std::pow(C_,4)/std::pow(B_,4);
+  double dz_2 = 2.*(A2*C2/B2 - std::pow(C_,4)/B2 + C2*x*x/B2 + C2*y*y/B2);
+  double dz = 4.*dz_4*z*z*z + 2.*dz_2*z;
+
+  double length = std::sqrt(dx*dx + dy*dy + dz*dz);
+
+  return {dx/length,dy/length,dz/length};
 }
 
 void SurfaceZTorus::to_hdf5_inner(hid_t group_id) const
