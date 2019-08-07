@@ -356,7 +356,7 @@ install(DIRECTORY include/ DESTINATION include)
 #=============================
 # write the dl_open Makefile
 #=============================
-file(WRITE share/Makefile"
+file(WRITE share/Makefile "
 # Makefile to build dynamic sources for OpenMC
 # this assumes that your source sampling filename is
 # source_sampling.cpp 
