@@ -357,7 +357,7 @@ install(DIRECTORY include/ DESTINATION include)
 #=============================
 # write the dl_open Makefile
 #=============================
-file(WRITE ${CMAKE_INSTALL_PREFIX}/share/CMakeLists.txt "
+file(WRITE ${CMAKE_BINARY_DIR}/CMakeLists.txt "
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 project(openmc_sources C CXX)
 add_library(source SHARED \$\{SOURCE_FILES\})
@@ -365,4 +365,4 @@ target_include_directories(source PUBLIC ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/vendor/pugixml ${HDF5_INCLUDE_DIRS})
 target_link_libraries(source ${ldflags} ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 ")
-
+install(FILES ${CMAKE_BINARY_DIR}/CMakeLists.txt DESTINATION share)
