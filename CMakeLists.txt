@@ -352,3 +352,7 @@ install(DIRECTORY src/relaxng DESTINATION share/openmc)
 install(FILES man/man1/openmc.1 DESTINATION share/man/man1)
 install(FILES LICENSE DESTINATION "share/doc/openmc" RENAME copyright)
 install(DIRECTORY include/ DESTINATION include)
+
+# build the cmake config gile
+configure_file(cmake/OpenMCConfig.cmake.in OpenMCConfig.cmake @ONLY)
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenMCConfig.cmake DESTINATION lib/cmake/)

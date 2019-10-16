@@ -1,0 +1,13 @@
+# - Config file for the OpenMC Package
+# It defines the following variables
+#  OPENMC_LIBRARY_DIRS - include directories for installed OpenMC libraries paths
+#  OPENMC_INCLUDE_DIRS - location of OpenMC includes
+#  OPENMC_LIBRARIES    - set of libraries installed with OpenMC, use to link applications against OpenMC
+
+# Declares the DAGMC package as found by CMake
+set(OPENMC_FOUND 1)
+
+set(OPENMC_INSTALL_DIR @CMAKE_INSTALL_PREFIX@)
+set(OPENMC_INCLUDE_DIRS @PROJECT_SOURCE_DIR@/include @HDF5_INCLUDE_DIRS@ @PROJECT_SOURCE_DIR@/vendor/pugixml/)
+set(OPENMC_LIBRARY_DIRS @CMAKE_INSTALL_PREFIX@/lib)
+set(OPENMC_LIBRARIES openmc @HDF5_LIBRARIES@ @HDF5_HL_LIBRARIES@)
