@@ -311,13 +311,13 @@ class Surface(IDManagerMixin, metaclass=ABCMeta):
             surface = Sphere(x0, y0, z0, r, bc, name, surface_id)
 
         elif surf_type in ['x-cone', 'y-cone', 'z-cone']:
-            x0, y0, z0, r2 = coeffs
+            x0, y0, z0, r2, up = coeffs
             if surf_type == 'x-cone':
-                surface = XCone(x0, y0, z0, r2, bc, name, surface_id)
+                surface = XCone(x0, y0, z0, r2, up, bc, name, surface_id)
             elif surf_type == 'y-cone':
-                surface = YCone(x0, y0, z0, r2, bc, name, surface_id)
+                surface = YCone(x0, y0, z0, r2, up, bc, name, surface_id)
             elif surf_type == 'z-cone':
-                surface = ZCone(x0, y0, z0, r2, bc, name, surface_id)
+                surface = ZCone(x0, y0, z0, r2, up, bc, name, surface_id)
 
         elif surf_type == 'quadric':
             a, b, c, d, e, f, g, h, j, k = coeffs
@@ -326,13 +326,13 @@ class Surface(IDManagerMixin, metaclass=ABCMeta):
         elif surf_type in ['x-torus','y-torus','z-torus']:
             x0, y0, z0, A, B, C = coeffs
             if surf_type == 'x-torus':
-                surface = TorusX(surface_id ,bc ,x0 ,y0 ,z0 ,A ,B ,C ,
+                surface = XTorus(surface_id ,bc ,x0 ,y0 ,z0 ,A ,B ,C ,
                                  name)
             if surf_type == 'y-torus':
-                surface = TorusY(surface_id ,bc ,x0 ,y0 ,z0 ,A ,B ,C ,
+                surface = YTorus(surface_id ,bc ,x0 ,y0 ,z0 ,A ,B ,C ,
                                  name)
             if surf_type == 'z-torus':
-                surface = TorusZ(surface_id ,bc ,x0 ,y0 ,z0 ,A ,B ,C ,
+                surface = ZTorus(surface_id ,bc ,x0 ,y0 ,z0 ,A ,B ,C ,
                                  name)
         
         return surface
@@ -1628,9 +1628,9 @@ class Cone(Surface):
 
     """
 
-    _coeff_keys = ('x0', 'y0', 'z0', 'r2')
+    _coeff_keys = ('x0', 'y0', 'z0', 'r2', 'up')
 
-    def __init__(self, x0=0., y0=0., z0=0., r2=1., boundary_type='transmission',
+    def __init__(self, x0=0., y0=0., z0=0., r2=1., up = 0, boundary_type='transmission',
                  name='', surface_id=None, *, R2=None):
         if R2 is not None:
             warn(_WARNING_UPPER.format(type(self).__name__, 'r2', 'R2'), FutureWarning)
@@ -1640,6 +1640,7 @@ class Cone(Surface):
         self.y0 = y0
         self.z0 = z0
         self.r2 = r2
+        self.up = up
 
     @property
     def x0(self):
@@ -1656,6 +1657,10 @@ class Cone(Surface):
     @property
     def r2(self):
         return self.coefficients['r2']
+
+    @property
+    def up(self):
+        return self.coefficients['up']
 
     @x0.setter
     def x0(self, x0):
@@ -1676,6 +1681,11 @@ class Cone(Surface):
     def r2(self, r2):
         check_type('r^2 coefficient', r2, Real)
         self._coefficients['r2'] = r2
+
+    @up.setter
+    def up(self, up):
+        check_type('up coefficient', up, Real)
+        self._coefficients['up'] = up
 
     def translate(self, vector):
         """Translate surface in given direction
@@ -1698,8 +1708,7 @@ class Cone(Surface):
             x0 = self.x0 + vx
             y0 = self.y0 + vy
             z0 = self.z0 + vz
-            return type(self)(x0=x0, y0=y0, z0=z0, r2=self.r2)
-
+            return type(self)(x0=x0, y0=y0, z0=z0, r2=self.r2, up=self.up)
 
 class XCone(Cone):
     """A cone parallel to the x-axis of the form :math:`(y - y_0)^2 + (z - z_0)^2 =
@@ -1769,8 +1778,20 @@ class XCone(Cone):
         x = point[0] - self.x0
         y = point[1] - self.y0
         z = point[2] - self.z0
-        return y**2 + z**2 - self.r2*x**2
-
+        
+        if up == 1.:
+            if x <= 0:
+                return 1.0
+            else:
+                return y**2 + z**2 - self.r2*x**2
+        elif up == -1.:
+            if x >= 0:
+                return 1.0
+            else:
+                return y**2 + z**2 - self.r2*x**2
+        else:
+            return y**2 + z**2 - self.r2*x**2
+ 
 
 class YCone(Cone):
     """A cone parallel to the y-axis of the form :math:`(x - x_0)^2 + (z - z_0)^2 =
@@ -1840,8 +1861,19 @@ class YCone(Cone):
         x = point[0] - self.x0
         y = point[1] - self.y0
         z = point[2] - self.z0
-        return x**2 + z**2 - self.r2*y**2
 
+        if up == 1.:
+            if y <= 0:
+                return 1.0
+            else:
+                return x**2 + z**2 - self.r2*y**2
+        elif up == -1.:
+            if y >= 0:
+                return 1.0
+            else:
+                return x**2 + z**2 - self.r2*y**2
+        else:
+            return x**2 + z**2 - self.r2*y**2
 
 class ZCone(Cone):
     """A cone parallel to the x-axis of the form :math:`(x - x_0)^2 + (y - y_0)^2 =
@@ -1911,7 +1943,19 @@ class ZCone(Cone):
         x = point[0] - self.x0
         y = point[1] - self.y0
         z = point[2] - self.z0
-        return x**2 + y**2 - self.r2*z**2
+
+        if up == 1.:
+            if z <= 0:
+                return 1.0
+            else:
+                return x**2 + y**2 - self.r2*z**2
+        elif up == -1.:
+            if z >= 0:
+                return 1.0
+            else:
+                return x**2 + y**2 - self.r2*z**2
+        else:
+            return x**2 + y**2 - self.r2*z**2
 
 class Quadric(Surface):
     """A surface of the form :math:`Ax^2 + By^2 + Cz^2 + Dxy + Eyz + Fxz + Gx + Hy +
@@ -2146,10 +2190,29 @@ class XTorus(Surface):
         self.x0 = x0
         self.y0 = y0
         self.z0 = z0
-        self.a = a
-        self.b = b
-        self.c = c
+        self.a = A
+        self.b = B
+        self.c = C
 
+    def translate(self, vector):
+        return self
+
+    def evaluate(self, point):
+        x = point[0] - self.x0
+        y = point[1] - self.y0
+        z = point[2] - self.z0
+
+        x_coeff = x**2
+        y_coeff = y**2
+        z_coeff = z**2
+
+        B2 = self.b*self.b
+        C2 = self.c*self.c
+
+        value = x_coeff/B2 + (np.sqrt(y_coeff+z_coeff)-self.a)**2/C2 - 1
+        
+        return value
+    
 class YTorus(Surface):
     """description.
 
@@ -2194,10 +2257,30 @@ class YTorus(Surface):
         self.x0 = x0
         self.y0 = y0
         self.z0 = z0
-        self.a = a
-        self.b = b
-        self.c = c
+        self.a = A
+        self.b = B
+        self.c = C
 
+    def evaluate(self, point):
+        
+        x = point[0] - self.x0
+        y = point[1] - self.y0
+        z = point[2] - self.z0
+
+        x_coeff = x**2
+        y_coeff = y**2
+        z_coeff = z**2
+
+        B2 = self.b*self.b
+        C2 = self.c*self.c
+
+        value = y_coeff/B2 + (np.sqrt(x_coeff+z_coeff)-self.a)**2/C2 - 1
+
+        return value
+        
+    def translate(self, vector):
+        return self
+        
 class ZTorus(Surface):
     """description.
 
@@ -2242,10 +2325,31 @@ class ZTorus(Surface):
         self.x0 = x0
         self.y0 = y0
         self.z0 = z0
-        self.a = a
-        self.b = b
-        self.c = c
+        self.a = A
+        self.b = B
+        self.c = C
 
+    def evaluate(self, point):
+        
+        x = point[0] - self.x0
+        y = point[1] - self.y0
+        z = point[2] - self.z0
+
+        x_coeff = x**2
+        y_coeff = y**2
+        z_coeff = z**2
+
+        B2 = self.b*self.b
+        C2 = self.c*self.c
+
+        value = z_coeff/B2 + (np.sqrt(x_coeff+y_coeff)-self.a)**2/C2 - 1
+
+        return value
+
+        
+    def translate(self, vector):
+        return self
+        
 class Halfspace(Region):
     """A positive or negative half-space region.
 

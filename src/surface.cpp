@@ -1346,6 +1346,14 @@ SurfaceXTorus::SurfaceXTorus(pugi::xml_node surf_node)
   read_coeffs(surf_node, id_, x0_, y0_, z0_, A_, B_, C_);
 }
 
+void SurfaceXTorus::to_hdf5_inner(hid_t group_id) const
+{
+  write_string(group_id, "type", "x-torus", false);
+  std::array<double, 6> coeffs {{x0_, y0_, z0_, A_, B_, C_ }};
+  write_dataset(group_id, "coefficients", coeffs);
+}
+
+
 // todo should do some alebgra first to get rid of the sqrt
 
 double
@@ -1455,9 +1463,9 @@ SurfaceYTorus::SurfaceYTorus(pugi::xml_node surf_node)
   read_coeffs(surf_node, id_, x0_, y0_, z0_, A_, B_, C_);
 }
 
-void SurfaceXTorus::to_hdf5_inner(hid_t group_id) const
+void SurfaceYTorus::to_hdf5_inner(hid_t group_id) const
 {
-  write_string(group_id, "type", "x-torus", false);
+  write_string(group_id, "type", "y-torus", false);
   std::array<double, 6> coeffs {{x0_, y0_, z0_, A_, B_, C_ }};
   write_dataset(group_id, "coefficients", coeffs);
 }
@@ -1568,17 +1576,17 @@ SurfaceYTorus::normal(Position r) const
   return {dx/length,dy/length,dz/length};
 }
 
-void SurfaceYTorus::to_hdf5_inner(hid_t group_id) const
-{
-  write_string(group_id, "type", "y-torus", false);
-  std::array<double, 6> coeffs {{x0_, y0_, z0_, A_, B_, C_ }};
-  write_dataset(group_id, "coefficients", coeffs);
-}
-
 SurfaceZTorus::SurfaceZTorus(pugi::xml_node surf_node)
   : CSGSurface(surf_node)
 {
   read_coeffs(surf_node, id_, x0_, y0_, z0_, A_, B_, C_);
+}
+
+void SurfaceZTorus::to_hdf5_inner(hid_t group_id) const
+{
+  write_string(group_id, "type", "z-torus", false);
+  std::array<double, 6> coeffs {{x0_, y0_, z0_, A_, B_, C_ }};
+  write_dataset(group_id, "coefficients", coeffs);
 }
 
 double
@@ -1685,13 +1693,6 @@ SurfaceZTorus::normal(Position r) const
   double length = std::sqrt(dx*dx + dy*dy + dz*dz);
 
   return {dx/length,dy/length,dz/length};
-}
-
-void SurfaceZTorus::to_hdf5_inner(hid_t group_id) const
-{
-  write_string(group_id, "type", "z-torus", false);
-  std::array<double, 6> coeffs {{x0_, y0_, z0_, A_, B_, C_ }};
-  write_dataset(group_id, "coefficients", coeffs);
 }
 
 //==============================================================================
